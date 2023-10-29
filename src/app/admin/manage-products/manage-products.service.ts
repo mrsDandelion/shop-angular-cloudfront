@@ -2,6 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { switchMap } from 'rxjs/operators';
+import { UrlResponse } from './manage-products.interface';
 
 @Injectable()
 export class ManageProductsService extends ApiService {
@@ -18,21 +19,23 @@ export class ManageProductsService extends ApiService {
     }
 
     return this.getPreSignedUrl(file.name).pipe(
-      switchMap((url) =>
-        this.http.put(url, file, {
+      switchMap((response) => {
+        const url = response.body.url;
+
+        return this.http.put(url, file, {
           headers: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'Content-Type': 'text/csv',
           },
-        })
-      )
+        });
+      })
     );
   }
 
-  private getPreSignedUrl(fileName: string): Observable<string> {
+  private getPreSignedUrl(fileName: string): Observable<UrlResponse> {
     const url = this.getUrl('import', 'import');
 
-    return this.http.get<string>(url, {
+    return this.http.get<UrlResponse>(url, {
       params: {
         name: fileName,
       },
